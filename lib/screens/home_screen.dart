@@ -30,18 +30,13 @@ class HomeScreen extends StatelessWidget {
           future: webtoon,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  var webtoon = snapshot.data![index];
-                  return Text(webtoon.title);
-                },
-                separatorBuilder: (context, index) {
-                  return const SizedBox(
-                    width: 10,
-                  );
-                },
+              return Column(
+                children: [
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  Expanded(child: makeList(snapshot)),
+                ],
               );
             }
             return const Center(
@@ -49,5 +44,30 @@ class HomeScreen extends StatelessWidget {
             );
           },
         ));
+  }
+
+  ListView makeList(AsyncSnapshot<List<WebtoonModel>> snapshot) {
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: snapshot.data!.length,
+      itemBuilder: (context, index) {
+        var webtoon = snapshot.data![index];
+        return Column(
+          children: [
+            Image.network(
+              webtoon.thumb,
+              width: 200,
+              height: 200,
+            ),
+            Text("${webtoon.title}"),
+          ],
+        );
+      },
+      separatorBuilder: (context, index) {
+        return const SizedBox(
+          width: 40,
+        );
+      },
+    );
   }
 }
