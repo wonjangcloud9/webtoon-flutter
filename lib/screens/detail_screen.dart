@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -24,12 +25,52 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   late Future<WebtoonDetailModel> webtoon;
   late Future<List<WebtoonEpisodeModel>> episodes;
+  late SharedPreferences prefs;
+  bool isLiked = false;
 
   @override
   void initState() {
     super.initState();
     webtoon = ApiService.getToonById(widget.id);
     episodes = ApiService.getLatestEpisodesById(widget.id);
+    initPrefs();
+  }
+
+  Future initPrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    final likedToons = prefs.getStringList("likedToons");
+    if (likedToons != null) {
+      if (likedToons.contains(widget.id) == true) {
+        setState(() {
+          isLiked = true;
+        });
+      }
+    } else {
+      prefs.setStringList("likedToons", []);
+      setState(() {
+        isLiked = false;
+      });
+    }
+  }
+
+  onHeartTap() async {
+    final likedToons = prefs.getStringList("likedToons");
+    if (likedToons != null) {
+      if (likedToons.contains(widget.id) == true) {
+        likedToons.remove(widget.id);
+        prefs.setStringList("likedToons", likedToons);
+        setState(() {
+          isLiked = false;
+        });
+      } else {
+        likedToons.add(widget.id);
+        prefs.setStringList("likedToons", likedToons);
+        setState(() {
+          isLiked = true;
+        });
+      }
+    }
+    print(isLiked);
   }
 
   @override
@@ -37,6 +78,16 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {
+              onHeartTap();
+            },
+            icon: Icon(
+              isLiked ? Icons.favorite : Icons.favorite_outline_outlined,
+            ),
+          ),
+        ],
         centerTitle: true,
         title: Text(
           widget.title,
